@@ -3,6 +3,9 @@ pipeline {
 		label 'master'
 	}
 
+	// options {
+	// 	buildDiscarder(logRotator(numToKeepStr: '3', artifactNumToKeepStr: '2'))
+	// }
 
 	stages {
 
