@@ -80,9 +80,9 @@ pipeline {
 			steps {
 				echo "stashing any local changes"
 				sh "git stash"
-				echo "Checking out to development branch"
+				echo "Checking out to the development branch"
 				sh "git checkout development"
-				echo "Checking out to master branch"
+				echo "Checking out to the master branch"
 				sh "git checkout master"
 				echo "Merging development into master branch"
 				sh "git merge development"
