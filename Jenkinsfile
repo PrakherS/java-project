@@ -5,6 +5,10 @@ pipeline {
 	// 	buildDiscarder(logRotator(numToKeepStr: '3', artifactNumToKeepStr: '2'))
 	// }
 
+	environment {
+		MAJOR_VERSION = 1
+	}
+
 	stages {
 
 		stage('Unit Tests') {
@@ -36,7 +40,7 @@ pipeline {
 			}
 			steps {
 				sh "if ![ -d '/var/www/html/rectangles/all/${env.BRANCH_NAME}' ]; then mkdir /var/www/html/rectangles/all/${env.BRANCH_NAME}; fi"
-				sh "cp dist/rectangle_${env.BUILD_NUMBER}.jar /var/www/html/rectangles/all/${env.BRANCH_NAME}/"
+				sh "cp dist/rectangle_${env.MAJOR_VERSION}.${env.BUILD_NUMBER}.jar /var/www/html/rectangles/all/${env.BRANCH_NAME}/"
 			}
 		}
 
@@ -45,8 +49,8 @@ pipeline {
 				label 'CentOS'
 			}
 			steps {
-				sh "wget http://goingcoding1.mylabserver.com/rectangles/all/${env.BRANCH_NAME}/rectangle_${env.BUILD_NUMBER}.jar"
-				sh "java -jar rectangle_${env.BUILD_NUMBER}.jar 3 4"
+				sh "wget http://goingcoding1.mylabserver.com/rectangles/all/${env.BRANCH_NAME}/rectangle_${env.MAJOR_VERSION}.${env.BUILD_NUMBER}.jar"
+				sh "java -jar rectangle_${env.MAJOR_VERSION}.${env.BUILD_NUMBER}.jar 3 4"
 			}
 		}
 
@@ -55,10 +59,11 @@ pipeline {
 				docker 'openjdk:8u121-jre'
 			}
 			steps {
-				sh "wget http://goingcoding1.mylabserver.com/rectangles/all/${env.BRANCH_NAME}/rectangle_${env.BUILD_NUMBER}.jar"
-				sh "java -jar rectangle_${env.BUILD_NUMBER}.jar 3 4"
+				sh "wget http://goingcoding1.mylabserver.com/rectangles/all/${env.BRANCH_NAME}/rectangle_${env.MAJOR_VERSION}.${env.BUILD_NUMBER}.jar"
+				sh "java -jar rectangle_${env.MAJOR_VERSION}.${env.BUILD_NUMBER}.jar 3 4"
 			}
 		}
+
 		stage('Promote to Green') {
 			agent {
 				label 'apache'
@@ -67,9 +72,10 @@ pipeline {
 				branch 'master'
 			}
 			steps {
-				sh "cp /var/www/html/rectangles/all/${env.BRANCH_NAME}/rectangle_${env.BUILD_NUMBER}.jar /var/www/html/rectangles/green/rectangle_${env.BUILD_NUMBER}.jar"
+				sh "cp /var/www/html/rectangles/all/${env.BRANCH_NAME}/rectangle_${env.MAJOR_VERSION}.${env.BUILD_NUMBER}.jar /var/www/html/rectangles/green/rectangle_${env.MAJOR_VERSION}.${env.BUILD_NUMBER}.jar"
 			}
 		}
+		
 		stage('Promote Development Branch to Master') {
 			agent {
 				label 'apache'
@@ -89,6 +95,9 @@ pipeline {
 				sh "git merge development"
 				echo "Pushing to origin master"
 				sh "git push origin master"
+				echo "Tagging the release"
+				sh "git tag rectangle-${env.MAJOR_VERSION}.${env.BUILD_NUMBER}"
+				sh "git push origin rectangle-${env.MAJOR_VERSION}.${env.BUILD_NUMBER}"
 			}
 		}
 	}
